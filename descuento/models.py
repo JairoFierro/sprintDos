@@ -1,7 +1,7 @@
 from django.db import models
 
 class Descuento(models.Model):
-    id_descuento = models.AutoField(primary_key=True)
+    id_descuento = models.IntegerField(default=0)
     fecha_aplicacion = models.DateField()
     valor_descuento = models.DecimalField(max_digits=10, decimal_places=2)
 
