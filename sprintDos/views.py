@@ -12,7 +12,7 @@ from cronograma.models import Cronograma
 @login_required
 def index(request):
     
-    return render(request, 'index_PadreFamilia.html')
+    return render(request, 'gerente.html')
 
     # if request.user.is_authenticated:
     #     return render(request, 'index.html')  # Plantilla para usuarios autenticados

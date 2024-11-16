@@ -2,9 +2,13 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+
+from descuento.models import Descuento
 from .models import Pago
 from django.contrib import messages 
 from django.contrib.auth.models import User
+from usuarioPadreFamilia.models import UsuarioPadreFamilia
+from cronograma.models import Cronograma
 
 def pagina_principal(request):
     if request.user.is_authenticated:
@@ -50,3 +54,55 @@ def crear_usuario(request):
             messages.error(request, f'Error al crear el usuario: {str(e)}')
     
     return render(request, 'crear_usuario.html')
+
+def pago_pendiente(request):
+    descuentos = Descuento.objects.all()
+    cronogramas = Cronograma.objects.all()
+    usuarios = UsuarioPadreFamilia.objects.all()
+
+    return render(request, 'pago_pendiente.html', {'descuentos': descuentos, 'cronogramas': cronogramas, 'usuarios': usuarios})
+
+def pago_pendiente(request):
+    descuentos = Descuento.objects.all()
+    cronogramas = Cronograma.objects.all()
+    usuarios = UsuarioPadreFamilia.objects.all()
+
+    if request.method == 'POST':
+        nombre_pago = request.POST.get('nombre_pago')
+        valor_pago = request.POST.get('valor_pago')
+        fecha_pago = request.POST.get('fecha_pago')
+        tipo_pago = request.POST.get('tipo_pago')
+
+        descuento_id = request.POST.get('descuentos')
+        cronograma_id = request.POST.get('cronograma')
+        usuario_id = request.POST.get('usuario')
+
+        # Obtener las instancias seleccionadas
+        descuento = Descuento.objects.get(id=descuento_id) if descuento_id else None
+        cronograma = Cronograma.objects.get(id=cronograma_id) if cronograma_id else None
+        usuario = UsuarioPadreFamilia.objects.get(id=usuario_id) if usuario_id else None
+
+        # Crear el nuevo pago
+        nuevo_pago = Pago(
+            nombre_pago=nombre_pago,
+            valor_pago=valor_pago,
+            fecha_pago=fecha_pago,
+            tipo_pago=tipo_pago,
+            estado_pago='PENDIENTE',
+            cronograma=cronograma,
+            usuario_padre=usuario
+        )
+        nuevo_pago.save()
+
+        # Asociar el descuento al pago
+        if descuento:
+            nuevo_pago.descuentos.add(descuento)
+
+        messages.success(request, 'Pago pendiente agregado exitosamente.')
+        return redirect('/')  # Redirigir después de guardar
+
+    return render(request, 'pago_pendiente.html', {
+        'descuentos': descuentos,
+        'cronogramas': cronogramas,
+        'usuarios': usuarios
+    })
